@@ -5,18 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Community Store | Campus Marketplace</title>
   <link rel="stylesheet" href="styles.css" />
-  <!-- FontAwesome Icons for clean UI -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 </head>
 <body>
 
-  <!-- Top Header -->
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Top Navigation Header -->
   <header class="app-header">
-    <div class="logo">
+    <div class="logo" onclick="switchView('marketplace')">
       <i class="fa-solid fa-store"></i>
       <span>Community Store</span>
     </div>
     <div class="header-actions">
+      <div id="user-pill" class="user-pill" onclick="switchView('profile')">
+        <i class="fa-solid fa-user-circle"></i>
+        <span id="header-user-name">Guest</span>
+      </div>
       <button class="cart-btn" onclick="switchView('cart')">
         <i class="fa-solid fa-cart-shopping"></i>
         <span id="cart-badge" class="badge">0</span>
@@ -24,101 +30,262 @@
     </div>
   </header>
 
-  <!-- Main View Area -->
+  <!-- Main View Router -->
   <main class="app-content">
 
-    <!-- Auth / Login View -->
-    <section id="view-auth" class="view">
-      <div class="auth-card">
-        <h2>Campus Verification</h2>
-        <p>Login with your verified university email address to trade safely.</p>
-        <form id="login-form" onsubmit="handleLogin(event)">
-          <div class="input-group">
-            <label for="user-email">University Email (.ac.za)</label>
-            <input type="email" id="user-email" placeholder="student@cput.ac.za" required />
-          </div>
-          <div class="input-group">
-            <label for="user-password">Password</label>
-            <input type="password" id="user-password" placeholder="••••••••" required />
-          </div>
-          <button type="submit" class="btn btn-primary">Sign In / Register</button>
-        </form>
-        <p id="auth-status" class="status-msg"></p>
-      </div>
-    </section>
-
-    <!-- Marketplace View -->
+    <!-- View: Marketplace -->
     <section id="view-marketplace" class="view active-view">
       <div class="search-bar">
         <i class="fa-solid fa-magnifying-glass"></i>
-        <input type="text" id="search-input" placeholder="Search textbooks, electronics..." onkeyup="filterProducts()" />
+        <input type="text" id="search-input" placeholder="Search textbooks, electronics, services..." oninput="filterProducts()" />
       </div>
 
-      <div class="category-pills">
-        <button class="pill active" onclick="filterCategory('all')">All</button>
-        <button class="pill" onclick="filterCategory('Textbooks')">Textbooks</button>
-        <button class="pill" onclick="filterCategory('Electronics')">Electronics</button>
-        <button class="pill" onclick="filterCategory('Services')">Services</button>
+      <div class="filter-row">
+        <div class="category-pills" id="category-pills">
+          <button class="pill active" onclick="filterCategory('all', this)">All Items</button>
+          <button class="pill" onclick="filterCategory('Textbooks', this)">Textbooks</button>
+          <button class="pill" onclick="filterCategory('Electronics', this)">Electronics</button>
+          <button class="pill" onclick="filterCategory('Services', this)">Services</button>
+          <button class="pill" onclick="filterCategory('Uniforms', this)">Uniforms</button>
+        </div>
+        <select id="condition-filter" class="select-filter" onchange="filterProducts()">
+          <option value="all">All Conditions</option>
+          <option value="New">New</option>
+          <option value="Like New">Like New</option>
+          <option value="Good">Good</option>
+          <option value="Fair">Fair</option>
+        </select>
       </div>
 
-      <div id="product-grid" class="product-grid">
-        <!-- Dynamic Product Cards injected by JS -->
+      <div id="product-grid" class="product-grid"></div>
+    </section>
+
+    <!-- View: Product Detail Modal / Page -->
+    <section id="view-product-detail" class="view">
+      <button class="btn-back" onclick="switchView('marketplace')">
+        <i class="fa-solid fa-arrow-left"></i> Back to Marketplace
+      </button>
+      <div id="product-detail-card" class="detail-card"></div>
+      
+      <!-- Ratings & Reviews Section -->
+      <div class="reviews-section">
+        <h3>Community Reviews & Ratings</h3>
+        <div id="reviews-list" class="reviews-list"></div>
+        
+        <form id="add-review-form" class="review-form" onsubmit="submitReview(event)">
+          <h4>Leave a Review</h4>
+          <div class="rating-select">
+            <label>Rating:</label>
+            <select id="review-rating" required>
+              <option value="5">⭐⭐⭐⭐⭐ (5/5)</option>
+              <option value="4">⭐⭐⭐⭐ (4/5)</option>
+              <option value="3">⭐⭐⭐ (3/5)</option>
+              <option value="2">⭐⭐ (2/5)</option>
+              <option value="1">⭐ (1/5)</option>
+            </select>
+          </div>
+          <textarea id="review-text" placeholder="Write your feedback about this seller/item..." required></textarea>
+          <button type="submit" class="btn btn-primary">Submit Review</button>
+        </form>
       </div>
     </section>
 
-    <!-- Add Product View -->
+    <!-- View: Add / Post Listing -->
     <section id="view-add" class="view">
       <div class="form-card">
-        <h2>Post New Item</h2>
+        <h2><i class="fa-solid fa-plus-circle"></i> Create New Listing</h2>
+        <p class="subtitle">List your pre-owned textbooks, gear, or local vendor services.</p>
         <form id="add-product-form" onsubmit="handleCreateListing(event)">
           <div class="input-group">
-            <label>Item Title</label>
-            <input type="text" id="prod-title" placeholder="e.g. Cisco CCNA 200-301 Guide" required />
+            <label>Listing Title</label>
+            <input type="text" id="prod-title" placeholder="e.g. CCNA 200-301 Official Cert Guide" required />
           </div>
-          <div class="input-group">
-            <label>Price (ZAR R)</label>
-            <input type="number" id="prod-price" placeholder="250" required />
+          <div class="form-row">
+            <div class="input-group">
+              <label>Price (ZAR R)</label>
+              <input type="number" id="prod-price" min="0" step="0.01" placeholder="250" required />
+            </div>
+            <div class="input-group">
+              <label>Category</label>
+              <select id="prod-category" required>
+                <option value="Textbooks">Textbooks</option>
+                <option value="Electronics">Electronics</option>
+                <option value="Services">Services</option>
+                <option value="Uniforms">Uniforms</option>
+              </select>
+            </div>
           </div>
-          <div class="input-group">
-            <label>Category</label>
-            <select id="prod-category">
-              <option value="Textbooks">Textbooks</option>
-              <option value="Electronics">Electronics</option>
-              <option value="Services">Services</option>
-            </select>
+          <div class="form-row">
+            <div class="input-group">
+              <label>Item Condition</label>
+              <select id="prod-condition" required>
+                <option value="Like New">Like New</option>
+                <option value="Good">Good</option>
+                <option value="Fair">Fair</option>
+                <option value="New">New</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label>Pickup Location</label>
+              <input type="text" id="prod-location" placeholder="e.g. CPUT Bellville Campus / D6" required />
+            </div>
           </div>
           <div class="input-group">
             <label>Image URL</label>
-            <input type="text" id="prod-img" placeholder="https://images.unsplash.com/photo..." required />
+            <input type="url" id="prod-img" placeholder="https://images.unsplash.com/photo-..." required />
+          </div>
+          <div class="input-group">
+            <label>Description</label>
+            <textarea id="prod-desc" placeholder="Detail item condition, edition, or pickup availability..." required></textarea>
           </div>
           <button type="submit" class="btn btn-primary">Publish Listing</button>
         </form>
       </div>
     </section>
 
-    <!-- Bulletin Board View -->
+    <!-- View: Community Bulletin Board -->
     <section id="view-bulletin" class="view">
-      <h2>Community Bulletin Board</h2>
-      <p class="subtitle">Campus announcements, events, and student notices.</p>
-      <div id="bulletin-list" class="bulletin-list">
-        <!-- Dynamic Bulletin Cards injected by JS -->
+      <div class="bulletin-header">
+        <div>
+          <h2><i class="fa-solid fa-bullhorn"></i> Campus Bulletin</h2>
+          <p class="subtitle">Events, club announcements, and lost & found notices.</p>
+        </div>
+        <button class="btn btn-secondary" onclick="togglePostForm()">+ Post Notice</button>
+      </div>
+
+      <!-- New Bulletin Post Form -->
+      <form id="bulletin-form" class="form-card hidden" onsubmit="handleCreateBulletin(event)">
+        <h3>New Bulletin Announcement</h3>
+        <div class="input-group">
+          <label>Notice Title</label>
+          <input type="text" id="bull-title" placeholder="e.g. ICT Study Group Session" required />
+        </div>
+        <div class="input-group">
+          <label>Category Tag</label>
+          <select id="bull-tag">
+            <option value="Event">Event</option>
+            <option value="Club Announcement">Club Announcement</option>
+            <option value="Services">Services</option>
+            <option value="Notice">Notice</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>Content</label>
+          <textarea id="bull-content" placeholder="Share event details, location, or contact info..." required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Post Announcement</button>
+      </form>
+
+      <div id="bulletin-list" class="bulletin-list"></div>
+    </section>
+
+    <!-- View: Cart & Checkout -->
+    <section id="view-cart" class="view">
+      <h2><i class="fa-solid fa-cart-shopping"></i> Shopping Cart & Checkout</h2>
+      <div id="cart-items-container" class="cart-items"></div>
+
+      <div class="cart-summary-card">
+        <h3>Order Summary</h3>
+        <div class="summary-row">
+          <span>Subtotal</span>
+          <span id="cart-subtotal">R 0.00</span>
+        </div>
+        <div class="summary-row">
+          <span>Escrow Protection Fee (1.5%)</span>
+          <span id="cart-fee">R 0.00</span>
+        </div>
+        <hr />
+        <div class="summary-row total">
+          <span>Total Amount</span>
+          <strong id="cart-total">R 0.00</strong>
+        </div>
+
+        <div class="checkout-method">
+          <label>Payment Method:</label>
+          <select id="payment-gateway">
+            <option value="PayFast">PayFast (Instant EFT & Cards)</option>
+            <option value="SnapScan">SnapScan QR</option>
+            <option value="CashOnPickup">Cash on Pickup (Escrow Held)</option>
+          </select>
+        </div>
+
+        <div class="checkout-method">
+          <label>Fulfillment Preference:</label>
+          <select id="fulfillment-type">
+            <option value="Campus Pickup">Campus Pickup (Safe Meetup Point)</option>
+            <option value="Local Delivery">Local Vendor Delivery</option>
+          </select>
+        </div>
+
+        <button class="btn btn-success" onclick="processCheckout()">
+          <i class="fa-solid fa-shield-halved"></i> Secure PayFast Checkout
+        </button>
       </div>
     </section>
 
-    <!-- Cart & Checkout View -->
-    <section id="view-cart" class="view">
-      <h2>Your Cart</h2>
-      <div id="cart-items-container" class="cart-items">
-        <!-- Dynamic Cart Items injected by JS -->
-      </div>
-      <div class="cart-summary">
-        <div class="summary-row">
-          <span>Total Amount:</span>
-          <strong id="cart-total">R 0.00</strong>
+    <!-- View: User Profile & Dashboard -->
+    <section id="view-profile" class="view">
+      <div class="profile-card">
+        <div class="profile-header">
+          <i class="fa-solid fa-user-circle avatar"></i>
+          <div>
+            <h2 id="prof-email">Guest User</h2>
+            <span id="prof-role-badge" class="badge-role">Student</span>
+            <p id="prof-status" class="status-verified"><i class="fa-solid fa-circle-check"></i> Account Verified</p>
+          </div>
         </div>
-        <button class="btn btn-success" onclick="processCheckout()">
-          <i class="fa-solid fa-lock"></i> Proceed to PayFast Checkout
-        </button>
+      </div>
+
+      <div class="dashboard-tabs">
+        <button class="tab-btn active" onclick="switchDashboardTab('my-listings', this)">My Listings</button>
+        <button class="tab-btn" onclick="switchDashboardTab('order-history', this)">Order History</button>
+      </div>
+
+      <div id="dash-my-listings" class="dash-tab-content active">
+        <div id="my-listings-grid" class="product-grid"></div>
+      </div>
+
+      <div id="dash-order-history" class="dash-tab-content">
+        <div id="order-history-list" class="orders-list"></div>
+      </div>
+
+      <button class="btn btn-danger" style="margin-top:20px;" onclick="handleLogout()">Sign Out</button>
+    </section>
+
+    <!-- View: Authentication Modal/Page -->
+    <section id="view-auth" class="view">
+      <div class="auth-card">
+        <h2>Campus Verification</h2>
+        <p class="subtitle">Access trusted buying and selling within your university network.</p>
+
+        <form id="login-form" onsubmit="handleAuth(event)">
+          <div class="input-group">
+            <label>Role</label>
+            <select id="auth-role" onchange="toggleRoleFields()">
+              <option value="Student">Student (.ac.za)</option>
+              <option value="Faculty">Faculty (.ac.za)</option>
+              <option value="Vendor">Local Vendor</option>
+              <option value="Resident">Community Resident</option>
+            </select>
+          </div>
+
+          <div class="input-group">
+            <label id="auth-email-label">University Email (.ac.za)</label>
+            <input type="email" id="auth-email" placeholder="230209076@cput.ac.za" required />
+          </div>
+
+          <div id="vendor-reg-group" class="input-group hidden">
+            <label>Business License / Reg Number</label>
+            <input type="text" id="auth-vendor-reg" placeholder="e.g. CPUT-VEND-2026-88" />
+          </div>
+
+          <div class="input-group">
+            <label>Password</label>
+            <input type="password" id="auth-password" placeholder="••••••••" required />
+          </div>
+
+          <button type="submit" class="btn btn-primary">Sign In / Register</button>
+        </form>
       </div>
     </section>
 
@@ -138,7 +305,7 @@
       <i class="fa-solid fa-circle-plus"></i>
       <span>Sell</span>
     </button>
-    <button class="nav-item" onclick="switchView('auth')">
+    <button class="nav-item" onclick="switchView('profile')">
       <i class="fa-solid fa-user"></i>
       <span>Account</span>
     </button>
