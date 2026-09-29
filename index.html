@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Community Store | Campus Marketplace</title>
+  <link rel="stylesheet" href="styles.css" />
+  <!-- FontAwesome Icons for clean UI -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+<body>
+
+  <!-- Top Header -->
+  <header class="app-header">
+    <div class="logo">
+      <i class="fa-solid fa-store"></i>
+      <span>Community Store</span>
+    </div>
+    <div class="header-actions">
+      <button class="cart-btn" onclick="switchView('cart')">
+        <i class="fa-solid fa-cart-shopping"></i>
+        <span id="cart-badge" class="badge">0</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main View Area -->
+  <main class="app-content">
+
+    <!-- Auth / Login View -->
+    <section id="view-auth" class="view">
+      <div class="auth-card">
+        <h2>Campus Verification</h2>
+        <p>Login with your verified university email address to trade safely.</p>
+        <form id="login-form" onsubmit="handleLogin(event)">
+          <div class="input-group">
+            <label for="user-email">University Email (.ac.za)</label>
+            <input type="email" id="user-email" placeholder="student@cput.ac.za" required />
+          </div>
+          <div class="input-group">
+            <label for="user-password">Password</label>
+            <input type="password" id="user-password" placeholder="••••••••" required />
+          </div>
+          <button type="submit" class="btn btn-primary">Sign In / Register</button>
+        </form>
+        <p id="auth-status" class="status-msg"></p>
+      </div>
+    </section>
+
+    <!-- Marketplace View -->
+    <section id="view-marketplace" class="view active-view">
+      <div class="search-bar">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="search-input" placeholder="Search textbooks, electronics..." onkeyup="filterProducts()" />
+      </div>
+
+      <div class="category-pills">
+        <button class="pill active" onclick="filterCategory('all')">All</button>
+        <button class="pill" onclick="filterCategory('Textbooks')">Textbooks</button>
+        <button class="pill" onclick="filterCategory('Electronics')">Electronics</button>
+        <button class="pill" onclick="filterCategory('Services')">Services</button>
+      </div>
+
+      <div id="product-grid" class="product-grid">
+        <!-- Dynamic Product Cards injected by JS -->
+      </div>
+    </section>
+
+    <!-- Add Product View -->
+    <section id="view-add" class="view">
+      <div class="form-card">
+        <h2>Post New Item</h2>
+        <form id="add-product-form" onsubmit="handleCreateListing(event)">
+          <div class="input-group">
+            <label>Item Title</label>
+            <input type="text" id="prod-title" placeholder="e.g. Cisco CCNA 200-301 Guide" required />
+          </div>
+          <div class="input-group">
+            <label>Price (ZAR R)</label>
+            <input type="number" id="prod-price" placeholder="250" required />
+          </div>
+          <div class="input-group">
+            <label>Category</label>
+            <select id="prod-category">
+              <option value="Textbooks">Textbooks</option>
+              <option value="Electronics">Electronics</option>
+              <option value="Services">Services</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label>Image URL</label>
+            <input type="text" id="prod-img" placeholder="https://images.unsplash.com/photo..." required />
+          </div>
+          <button type="submit" class="btn btn-primary">Publish Listing</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- Bulletin Board View -->
+    <section id="view-bulletin" class="view">
+      <h2>Community Bulletin Board</h2>
+      <p class="subtitle">Campus announcements, events, and student notices.</p>
+      <div id="bulletin-list" class="bulletin-list">
+        <!-- Dynamic Bulletin Cards injected by JS -->
+      </div>
+    </section>
+
+    <!-- Cart & Checkout View -->
+    <section id="view-cart" class="view">
+      <h2>Your Cart</h2>
+      <div id="cart-items-container" class="cart-items">
+        <!-- Dynamic Cart Items injected by JS -->
+      </div>
+      <div class="cart-summary">
+        <div class="summary-row">
+          <span>Total Amount:</span>
+          <strong id="cart-total">R 0.00</strong>
+        </div>
+        <button class="btn btn-success" onclick="processCheckout()">
+          <i class="fa-solid fa-lock"></i> Proceed to PayFast Checkout
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Bottom Navigation Bar -->
+  <nav class="app-nav">
+    <button class="nav-item active" onclick="switchView('marketplace')">
+      <i class="fa-solid fa-store"></i>
+      <span>Store</span>
+    </button>
+    <button class="nav-item" onclick="switchView('bulletin')">
+      <i class="fa-solid fa-newspaper"></i>
+      <span>Bulletin</span>
+    </button>
+    <button class="nav-item" onclick="switchView('add')">
+      <i class="fa-solid fa-circle-plus"></i>
+      <span>Sell</span>
+    </button>
+    <button class="nav-item" onclick="switchView('auth')">
+      <i class="fa-solid fa-user"></i>
+      <span>Account</span>
+    </button>
+  </nav>
+
+  <script src="app.js"></script>
+</body>
+</html>
